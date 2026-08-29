@@ -28,6 +28,7 @@
         return;
       }
 
+      await desativarRealtime();
       var resultado = await supabaseClient.auth.signOut();
 
       if(resultado.error){
@@ -138,6 +139,7 @@
     mostrarMensagemAuth("");
     authScreenEl.classList.add("hidden");
     await carregar();
+    await ativarRealtime();
   }
 
     async function solicitarRedefinicaoSenha(){
@@ -196,6 +198,7 @@
     if(session){
       authScreenEl.classList.add("hidden");
       await carregar();
+      await ativarRealtime();
     } else {
       items = [];
       render();
@@ -270,8 +273,9 @@
 
   
   var items = [];
-  
   var pendingRemoval = null; // { item, index, timeoutId }
+  var realtimeChannel = null;
+  var realtimeTimer = null;
 
   var MERCADOS = {
     walmart:  { nome: "Walmart",    sigla: "WM", cor: "#0071ce" },
@@ -315,6 +319,59 @@
     });
 
     render();
+  }
+
+    async function ativarRealtime(){
+    var resultadoUsuario =
+      await supabaseClient.auth.getUser();
+
+    var usuario = resultadoUsuario.data.user;
+
+    if(!usuario){
+      return;
+    }
+
+    if(realtimeChannel){
+      await supabaseClient.removeChannel(
+        realtimeChannel
+      );
+
+      realtimeChannel = null;
+    }
+
+    realtimeChannel = supabaseClient
+      .channel("itens-" + usuario.id)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "itens"
+        },
+        function(){
+          clearTimeout(realtimeTimer);
+
+          realtimeTimer = setTimeout(function(){
+            carregar();
+          }, 300);
+        }
+      )
+      .subscribe(function(status){
+        console.log("Realtime:", status);
+      });
+  }
+
+  async function desativarRealtime(){
+    clearTimeout(realtimeTimer);
+    realtimeTimer = null;
+
+    if(realtimeChannel){
+      await supabaseClient.removeChannel(
+        realtimeChannel
+      );
+
+      realtimeChannel = null;
+    }
   }
 
   // ---------- Parsing / formatação ----------
