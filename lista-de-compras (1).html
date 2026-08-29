@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Lista de Compras</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <div class="topbar">
+    <div class="total-row">
+      <div>
+        <p class="total-label">Total no carrinho</p>
+        <div class="total-value mono" id="total-value">$0.00</div>
+      </div>
+      <button class="clear-btn" id="btn-clear" aria-label="Limpar tudo">🗑</button>
+    </div>
+    <div class="progress-row">
+      <span class="progress-text" id="progress-text">0 itens na lista</span>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-wrap" id="list-wrap">
+    <div class="empty-state" id="empty-state">
+      <div class="emoji">🛒</div>
+      <p>Sua lista está vazia. Adicione o primeiro item ali embaixo.</p>
+    </div>
+    <div id="list"></div>
+  </div>
+
+  <div class="toast" id="toast">
+    <span id="toast-text">Item removido</span>
+    <button id="btn-undo">DESFAZER</button>
+  </div>
+
+  <div class="addbar" id="addbar">
+    <div class="mercado-row" id="mercado-row"></div>
+    <div class="addbar-row1">
+      <input id="input-nome" type="text" placeholder="Nome do item" maxlength="60" autocomplete="off">
+      <input id="input-qtd" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" maxlength="3">
+      <input id="input-preco" type="text" inputmode="decimal" placeholder="0.00" maxlength="9">
+    </div>
+    <div class="addbar-row2">
+      <button class="btn-add" id="btn-add"><span class="plus">+</span> Adicionar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3>Limpar tudo?</h3>
+      <p>Isso vai apagar todos os itens da lista. Essa ação não pode ser desfeita.</p>
+      <div class="modal-btns">
+        <button class="btn-cancelar" id="btn-modal-cancelar">Cancelar</button>
+        <button class="btn-confirmar" id="btn-modal-confirmar">Limpar tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="edit-modal-overlay">
+    <div class="modal modal-edit">
+      <h3>Editar item</h3>
+      <div class="mercado-row" id="edit-mercado-row"></div>
+      <div class="edit-field-nome">
+        <span class="edit-label">Nome</span>
+        <input id="edit-input-nome" type="text" placeholder="Nome do item" maxlength="60" autocomplete="off">
+      </div>
+      <div class="edit-row2">
+        <div class="edit-field">
+          <span class="edit-label">Quantidade</span>
+          <input id="edit-input-qtd" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3">
+        </div>
+        <div class="edit-field">
+          <span class="edit-label">Preço</span>
+          <input id="edit-input-preco" type="text" inputmode="decimal" placeholder="0.00" maxlength="9">
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancelar" id="btn-edit-cancelar">Cancelar</button>
+        <button class="btn-confirmar btn-salvar" id="btn-edit-salvar">Salvar</button>
+      </div>
+    </div>
+  </div>
+</body>
+<script src="script.js"</script></script>
+</html>
