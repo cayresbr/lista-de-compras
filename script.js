@@ -1,9 +1,276 @@
 (function(){
   "use strict";
 
-  var STORAGE_KEY = "lista-compras-v1";
+  var SUPABASE_URL = 'https://jlbixxvtorrnyiqdwiap.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_Cfs-qyApyxx3Cj7Rn7Pk6g_8BbwrAel';
+
+  var supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+    // ---------- Autenticação ----------
+
+  var authScreenEl = document.getElementById("auth-screen");
+  var authEmailEl = document.getElementById("auth-email");
+  var authPasswordEl = document.getElementById("auth-password");
+  var authMessageEl = document.getElementById("auth-message");
+  var btnLoginEl = document.getElementById("btn-login");
+  var btnSignupEl = document.getElementById("btn-signup");
+
+    document.getElementById("btn-logout")
+    .addEventListener("click", async function(){
+      var confirmar = confirm(
+        "Deseja sair da sua conta?"
+      );
+
+      if(!confirmar){
+        return;
+      }
+
+      var resultado = await supabaseClient.auth.signOut();
+
+      if(resultado.error){
+        console.error(
+          "Não foi possível sair:",
+          resultado.error
+        );
+
+        alert("Não foi possível sair da conta.");
+        return;
+      }
+
+      items = [];
+      render();
+
+      authPasswordEl.value = "";
+      mostrarMensagemAuth("");
+      authScreenEl.classList.remove("hidden");
+    });
+
+  function mostrarMensagemAuth(mensagem, sucesso){
+    authMessageEl.textContent = mensagem;
+    authMessageEl.classList.toggle("success", !!sucesso);
+  }
+
+  function bloquearBotoesAuth(bloquear){
+    btnLoginEl.disabled = bloquear;
+    btnSignupEl.disabled = bloquear;
+  }
+
+  function validarFormularioAuth(){
+    var email = authEmailEl.value.trim();
+    var senha = authPasswordEl.value;
+
+    if(!email){
+      mostrarMensagemAuth("Digite seu e-mail.");
+      authEmailEl.focus();
+      return null;
+    }
+
+    if(!senha){
+      mostrarMensagemAuth("Digite sua senha.");
+      authPasswordEl.focus();
+      return null;
+    }
+
+    if(senha.length < 6){
+      mostrarMensagemAuth("A senha precisa ter pelo menos 6 caracteres.");
+      authPasswordEl.focus();
+      return null;
+    }
+
+    return {
+      email: email,
+      senha: senha
+    };
+  }
+
+  async function criarConta(){
+    var dados = validarFormularioAuth();
+    if(!dados) return;
+
+    bloquearBotoesAuth(true);
+    mostrarMensagemAuth("Criando sua conta...", true);
+
+    var resultado = await supabaseClient.auth.signUp({
+      email: dados.email,
+      password: dados.senha
+    });
+
+    bloquearBotoesAuth(false);
+
+    if(resultado.error){
+      mostrarMensagemAuth(resultado.error.message);
+      return;
+    }
+
+    if(resultado.data.session){
+      mostrarMensagemAuth("");
+      authScreenEl.classList.add("hidden");
+    } else {
+      mostrarMensagemAuth(
+        "Conta criada! Confira seu e-mail para confirmar o cadastro.",
+        true
+      );
+    }
+  }
+
+  async function entrar(){
+    var dados = validarFormularioAuth();
+    if(!dados) return;
+
+    bloquearBotoesAuth(true);
+    mostrarMensagemAuth("Entrando...", true);
+
+    var resultado = await supabaseClient.auth.signInWithPassword({
+      email: dados.email,
+      password: dados.senha
+    });
+
+    bloquearBotoesAuth(false);
+
+    if(resultado.error){
+      mostrarMensagemAuth("E-mail ou senha incorretos.");
+      return;
+    }
+
+    mostrarMensagemAuth("");
+    authScreenEl.classList.add("hidden");
+    await carregar();
+  }
+
+    async function solicitarRedefinicaoSenha(){
+    var email = authEmailEl.value.trim();
+
+    if(!email){
+      mostrarMensagemAuth(
+        "Digite seu e-mail primeiro."
+      );
+
+      authEmailEl.focus();
+      return;
+    }
+
+    var btnReset = document.getElementById(
+      "btn-reset-password"
+    );
+
+    btnReset.disabled = true;
+    btnReset.textContent = "Enviando...";
+
+    var enderecoRetorno =
+      window.location.origin + window.location.pathname;
+
+    var resultado = await supabaseClient.auth
+      .resetPasswordForEmail(email, {
+        redirectTo: enderecoRetorno
+      });
+
+    btnReset.disabled = false;
+    btnReset.textContent = "Esqueci minha senha";
+
+    if(resultado.error){
+      console.error(
+        "Erro ao solicitar nova senha:",
+        resultado.error
+      );
+
+      mostrarMensagemAuth(
+        "Não foi possível enviar o e-mail."
+      );
+
+      return;
+    }
+
+    mostrarMensagemAuth(
+      "Enviamos um link para seu e-mail. Confira também a pasta de spam.",
+      true
+    );
+  }
+
+    async function verificarLogin(){
+    var resultado = await supabaseClient.auth.getSession();
+    var session = resultado.data.session;
+
+    if(session){
+      authScreenEl.classList.add("hidden");
+      await carregar();
+    } else {
+      items = [];
+      render();
+      authScreenEl.classList.remove("hidden");
+    }
+  }
+
+  btnLoginEl.addEventListener("click", entrar);
+  btnSignupEl.addEventListener("click", criarConta);
+
+  document.getElementById("btn-reset-password")
+  .addEventListener(
+    "click",
+    solicitarRedefinicaoSenha
+  );
+
+  authPasswordEl.addEventListener("keydown", function(evento){
+    if(evento.key === "Enter"){
+      entrar();
+    }
+  });
+
+    supabaseClient.auth.onAuthStateChange(function(evento, session){
+    if(evento === "PASSWORD_RECOVERY"){
+      setTimeout(async function(){
+        var novaSenha = prompt(
+          "Digite sua nova senha com pelo menos 6 caracteres:"
+        );
+
+        if(!novaSenha){
+          return;
+        }
+
+        if(novaSenha.length < 6){
+          alert(
+            "A senha precisa ter pelo menos 6 caracteres."
+          );
+          return;
+        }
+
+        var resultado = await supabaseClient.auth.updateUser({
+          password: novaSenha
+        });
+
+        if(resultado.error){
+          console.error(
+            "Erro ao alterar a senha:",
+            resultado.error
+          );
+
+          alert("Não foi possível alterar a senha.");
+          return;
+        }
+
+        alert("Senha alterada com sucesso!");
+
+        authPasswordEl.value = "";
+        authScreenEl.classList.add("hidden");
+
+        await carregar();
+      }, 0);
+
+      return;
+    }
+
+    if(session){
+      authScreenEl.classList.add("hidden");
+    } else {
+      authScreenEl.classList.remove("hidden");
+    }
+  });
+
+  
   var items = [];
-  var nextId = 1;
+  
   var pendingRemoval = null; // { item, index, timeoutId }
 
   var MERCADOS = {
@@ -16,36 +283,38 @@
   var mercadoSelecionado = "walmart";
 
   // ---------- Persistência ----------
-  function salvar(){
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: items, nextId: nextId }));
-    }catch(e){
-      console.warn("Não foi possível salvar a lista:", e);
-    }
-  }
 
-  function carregar(){
-    try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return;
-      var data = JSON.parse(raw);
-      if(data && Array.isArray(data.items)){
-        items = data.items.map(function(it){
-          return {
-            id: it.id,
-            nome: String(it.nome || ""),
-            qtd: (Number.isFinite(it.qtd) && it.qtd > 0) ? it.qtd : 1,
-            preco: (typeof it.preco === "number" && isFinite(it.preco)) ? it.preco : null,
-            pego: !!it.pego,
-            mercado: MERCADOS.hasOwnProperty(it.mercado) ? it.mercado : "walmart"
-          };
-        });
-        nextId = Number.isFinite(data.nextId) ? data.nextId : (items.reduce(function(m,i){return Math.max(m, i.id||0);},0) + 1);
-      }
-    }catch(e){
-      console.warn("Não foi possível carregar a lista salva:", e);
+  
+
+    async function carregar(){
+    var resultado = await supabaseClient
+      .from("itens")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if(resultado.error){
+      console.error(
+        "Não foi possível carregar os itens:",
+        resultado.error
+      );
+
       items = [];
+      render();
+      return;
     }
+
+    items = resultado.data.map(function(item){
+      return {
+        id: item.id,
+        nome: item.nome,
+        qtd: item.qtd,
+        preco: item.preco !== null ? Number(item.preco) : null,
+        pego: item.pego,
+        mercado: item.mercado
+      };
+    });
+
+    render();
   }
 
   // ---------- Parsing / formatação ----------
@@ -155,44 +424,118 @@
   }
 
   // ---------- Ações ----------
-  function adicionarItem(nome, qtdStr, precoStr){
+    async function adicionarItem(nome, qtdStr, precoStr){
     nome = nome.trim();
-    if(!nome) return false;
-    var item = {
-      id: nextId++,
+
+    if(!nome){
+      return false;
+    }
+
+    var novoItem = {
       nome: nome,
       qtd: parseQtd(qtdStr),
       preco: parsePreco(precoStr),
       pego: false,
       mercado: mercadoSelecionado
     };
-    items.push(item);
-    salvar();
+
+    var resultado = await supabaseClient
+      .from("itens")
+      .insert(novoItem)
+      .select()
+      .single();
+
+    if(resultado.error){
+      console.error(
+        "Não foi possível adicionar o item:",
+        resultado.error
+      );
+
+      alert("Não foi possível adicionar o produto.");
+      return false;
+    }
+
+    var itemSalvo = resultado.data;
+
+    items.push({
+      id: itemSalvo.id,
+      nome: itemSalvo.nome,
+      qtd: itemSalvo.qtd,
+      preco: itemSalvo.preco !== null
+        ? Number(itemSalvo.preco)
+        : null,
+      pego: itemSalvo.pego,
+      mercado: itemSalvo.mercado
+    });
+
     render();
     return true;
   }
 
-  function toggleItem(id){
-    var item = items.find(function(i){ return i.id === id; });
-    if(!item) return;
-    item.pego = !item.pego;
-    salvar();
+    async function toggleItem(id){
+    var item = items.find(function(i){
+      return i.id === id;
+    });
+
+    if(!item){
+      return;
+    }
+
+    var novoEstado = !item.pego;
+
+    var resultado = await supabaseClient
+      .from("itens")
+      .update({
+        pego: novoEstado
+      })
+      .eq("id", id);
+
+    if(resultado.error){
+      console.error(
+        "Não foi possível atualizar o item:",
+        resultado.error
+      );
+
+      alert("Não foi possível atualizar o produto.");
+      return;
+    }
+
+    item.pego = novoEstado;
     render();
   }
 
-  function removerItem(id){
-    var index = items.findIndex(function(i){ return i.id === id; });
-    if(index === -1) return;
+    async function removerItem(id){
+    var index = items.findIndex(function(i){
+      return i.id === id;
+    });
 
-    // se já existe uma remoção pendente, finaliza ela antes
+    if(index === -1){
+      return;
+    }
+
+    var removedItem = items[index];
+
+    var resultado = await supabaseClient
+      .from("itens")
+      .delete()
+      .eq("id", id);
+
+    if(resultado.error){
+      console.error(
+        "Não foi possível remover o item:",
+        resultado.error
+      );
+
+      alert("Não foi possível remover o produto.");
+      return;
+    }
+
     if(pendingRemoval){
       clearTimeout(pendingRemoval.timeoutId);
       pendingRemoval = null;
     }
 
-    var removedItem = items[index];
     items.splice(index, 1);
-    salvar();
     render();
 
     pendingRemoval = {
@@ -203,29 +546,89 @@
         esconderToast();
       }, 5000)
     };
+
     mostrarToast(removedItem.nome);
   }
 
-  function desfazerRemocao(){
-    if(!pendingRemoval) return;
-    clearTimeout(pendingRemoval.timeoutId);
-    var idx = Math.min(pendingRemoval.index, items.length);
-    items.splice(idx, 0, pendingRemoval.item);
+    
+
+    async function desfazerRemocao(){
+    if(!pendingRemoval){
+      return;
+    }
+
+    var remocao = pendingRemoval;
+
+    clearTimeout(remocao.timeoutId);
     pendingRemoval = null;
-    salvar();
+
+    var resultado = await supabaseClient
+      .from("itens")
+      .insert({
+        nome: remocao.item.nome,
+        qtd: remocao.item.qtd,
+        preco: remocao.item.preco,
+        pego: remocao.item.pego,
+        mercado: remocao.item.mercado
+      })
+      .select()
+      .single();
+
+    if(resultado.error){
+      console.error(
+        "Não foi possível desfazer a remoção:",
+        resultado.error
+      );
+
+      esconderToast();
+      alert("Não foi possível recuperar o produto.");
+      return;
+    }
+
+    var itemRecuperado = {
+      id: resultado.data.id,
+      nome: resultado.data.nome,
+      qtd: resultado.data.qtd,
+      preco: resultado.data.preco !== null
+        ? Number(resultado.data.preco)
+        : null,
+      pego: resultado.data.pego,
+      mercado: resultado.data.mercado
+    };
+
+    var index = Math.min(remocao.index, items.length);
+
+    items.splice(index, 0, itemRecuperado);
     render();
     esconderToast();
   }
 
-  function limparTudo(){
+    async function limparTudo(){
+    var resultado = await supabaseClient
+      .from("itens")
+      .delete()
+      .gte("id", 0);
+
+    if(resultado.error){
+      console.error(
+        "Não foi possível limpar a lista:",
+        resultado.error
+      );
+
+      alert("Não foi possível limpar a lista.");
+      return false;
+    }
+
     items = [];
+
     if(pendingRemoval){
       clearTimeout(pendingRemoval.timeoutId);
       pendingRemoval = null;
       esconderToast();
     }
-    salvar();
+
     render();
+    return true;
   }
 
   // ---------- Toast ----------
@@ -259,16 +662,28 @@
   var inputQtd = document.getElementById("input-qtd");
   var inputPreco = document.getElementById("input-preco");
 
-  function tentarAdicionar(){
-    var ok = adicionarItem(inputNome.value, inputQtd.value, inputPreco.value);
+    async function tentarAdicionar(){
+    var btnAdd = document.getElementById("btn-add");
+
+    btnAdd.disabled = true;
+    btnAdd.textContent = "Adicionando...";
+
+    var ok = await adicionarItem(
+      inputNome.value,
+      inputQtd.value,
+      inputPreco.value
+    );
+
+    btnAdd.disabled = false;
+    btnAdd.innerHTML = '<span class="plus">+</span> Adicionar';
+
     if(ok){
       inputNome.value = "";
       inputQtd.value = "";
       inputPreco.value = "";
-      inputNome.focus();
-    } else {
-      inputNome.focus();
     }
+
+    inputNome.focus();
   }
 
   document.getElementById("btn-add").addEventListener("click", tentarAdicionar);
@@ -290,9 +705,24 @@
     if(items.length === 0) return;
     modalOverlay.classList.add("show");
   });
-  document.getElementById("btn-modal-cancelar").addEventListener("click", function(){
-    modalOverlay.classList.remove("show");
-  });
+    document.getElementById("btn-modal-confirmar")
+    .addEventListener("click", async function(){
+      var btnConfirmar = document.getElementById(
+        "btn-modal-confirmar"
+      );
+
+      btnConfirmar.disabled = true;
+      btnConfirmar.textContent = "Limpando...";
+
+      var limpou = await limparTudo();
+
+      btnConfirmar.disabled = false;
+      btnConfirmar.textContent = "Limpar tudo";
+
+      if(limpou){
+        modalOverlay.classList.remove("show");
+      }
+    });
   document.getElementById("btn-modal-confirmar").addEventListener("click", function(){
     limparTudo();
     modalOverlay.classList.remove("show");
@@ -368,20 +798,61 @@
     editingId = null;
   }
 
-  function salvarEdicao(){
-    if(editingId == null) return;
-    var item = items.find(function(i){ return i.id === editingId; });
-    if(!item) return;
+    async function salvarEdicao(){
+    if(editingId == null){
+      return;
+    }
+
+    var item = items.find(function(i){
+      return i.id === editingId;
+    });
+
+    if(!item){
+      return;
+    }
+
     var nome = editInputNome.value.trim();
+
     if(!nome){
       editInputNome.focus();
       return;
     }
-    item.nome = nome;
-    item.qtd = parseQtd(editInputQtd.value);
-    item.preco = parsePreco(editInputPreco.value);
-    item.mercado = mercadoEdicaoSelecionado;
-    salvar();
+
+    var novosDados = {
+      nome: nome,
+      qtd: parseQtd(editInputQtd.value),
+      preco: parsePreco(editInputPreco.value),
+      mercado: mercadoEdicaoSelecionado
+    };
+
+    var btnSalvar = document.getElementById("btn-edit-salvar");
+
+    btnSalvar.disabled = true;
+    btnSalvar.textContent = "Salvando...";
+
+    var resultado = await supabaseClient
+      .from("itens")
+      .update(novosDados)
+      .eq("id", editingId);
+
+    btnSalvar.disabled = false;
+    btnSalvar.textContent = "Salvar";
+
+    if(resultado.error){
+      console.error(
+        "Não foi possível editar o item:",
+        resultado.error
+      );
+
+      alert("Não foi possível salvar as alterações.");
+      return;
+    }
+
+    item.nome = novosDados.nome;
+    item.qtd = novosDados.qtd;
+    item.preco = novosDados.preco;
+    item.mercado = novosDados.mercado;
+
     render();
     fecharEdicao();
   }
@@ -402,7 +873,7 @@
   });
 
   // ---------- Init ----------
-  carregar();
+  verificarLogin();
   render();
   renderMercadoChips();
   ajustarAlturaAddbar();
