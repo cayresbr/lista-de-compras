@@ -38,6 +38,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100dvh;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -148,9 +149,12 @@ body {
 /* ---------- LISTA ---------- */
 .list-wrap {
   flex: 1;
+  min-height: 0;
+  overscroll-behavior-y: contain;
   overflow-y: auto;
   padding: 14px 14px 10px;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .empty-state {
