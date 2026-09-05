@@ -16,45 +16,42 @@
     />
   </head>
   <body>
-      <div class="auth-screen" id="auth-screen">
-    <div class="auth-card">
-      <div class="auth-icon">🛒</div>
+    <div class="auth-screen" id="auth-screen">
+      <div class="auth-card">
+        <div class="auth-icon">🛒</div>
 
-      <h1>Minha lista</h1>
-      <p>Acesse sua conta para sincronizar a lista em todos os aparelhos.</p>
+        <h1>Minha lista</h1>
+        <p>Acesse sua conta para sincronizar a lista em todos os aparelhos.</p>
 
-      <label for="auth-email">E-mail</label>
-      <input
-        id="auth-email"
-        type="email"
-        placeholder="seu@email.com"
-        autocomplete="email"
-      >
+        <label for="auth-email">E-mail</label>
+        <input
+          id="auth-email"
+          type="email"
+          placeholder="seu@email.com"
+          autocomplete="email"
+        />
 
-      <label for="auth-password">Senha</label>
-      <input
-        id="auth-password"
-        type="password"
-        placeholder="Mínimo de 6 caracteres"
-        autocomplete="current-password"
-      >
+        <label for="auth-password">Senha</label>
+        <input
+          id="auth-password"
+          type="password"
+          placeholder="Mínimo de 6 caracteres"
+          autocomplete="current-password"
+        />
 
-      <div class="auth-message" id="auth-message"></div>
+        <div class="auth-message" id="auth-message"></div>
 
-      <button type="button" class="auth-login" id="btn-login">
-        Entrar
-      </button>
+        <button type="button" class="auth-login" id="btn-login">Entrar</button>
 
-      <button type="button" class="auth-signup" id="btn-signup">
-        Criar uma conta
-      </button>
-      <button type="button" class="auth-reset" id="btn-reset-password">
-  Esqueci minha senha
-</button>
+        <button type="button" class="auth-signup" id="btn-signup">
+          Criar uma conta
+        </button>
+        <button type="button" class="auth-reset" id="btn-reset-password">
+          Esqueci minha senha
+        </button>
+      </div>
     </div>
-  </div>
 
-  
     <div class="topbar">
       <div class="total-row">
         <div>
@@ -62,26 +59,35 @@
           <div class="total-value mono" id="total-value">$0.00</div>
         </div>
         <div class="top-actions">
-  <button
-    class="logout-btn"
-    id="btn-logout"
-    type="button"
-    aria-label="Sair da conta"
-    title="Sair da conta"
-  >
-    ↪
-  </button>
+          <button
+            class="uncheck-btn"
+            id="btn-uncheck-all"
+            type="button"
+            aria-label="Desmarcar todos os itens desta aba"
+            title="Desmarcar todos desta aba"
+          >
+            ↺
+          </button>
+          <button
+            class="logout-btn"
+            id="btn-logout"
+            type="button"
+            aria-label="Sair da conta"
+            title="Sair da conta"
+          >
+            ↪
+          </button>
 
-  <button
-    class="clear-btn"
-    id="btn-clear"
-    type="button"
-    aria-label="Limpar tudo"
-    title="Limpar tudo"
-  >
-    🗑
-  </button>
-</div>
+          <button
+            class="clear-btn"
+            id="btn-clear"
+            type="button"
+            aria-label="Limpar tudo"
+            title="Limpar tudo"
+          >
+            🗑
+          </button>
+        </div>
       </div>
       <div class="progress-row">
         <span class="progress-text" id="progress-text">0 itens na lista</span>
@@ -94,6 +100,12 @@
         </div>
       </div>
     </div>
+
+    <nav
+      class="market-tabs"
+      id="market-tabs"
+      aria-label="Filtrar items por mercado"
+    ></nav>
 
     <div class="list-wrap" id="list-wrap">
       <div class="empty-state" id="empty-state">

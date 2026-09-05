@@ -1,4 +1,4 @@
-(function(){
+(function () {
   "use strict";
 
   var SUPABASE_URL = 'https://jlbixxvtorrnyiqdwiap.supabase.co';
@@ -9,7 +9,7 @@
     SUPABASE_KEY
   );
 
-    // ---------- Autenticação ----------
+  // ---------- Autenticação ----------
 
   var authScreenEl = document.getElementById("auth-screen");
   var authEmailEl = document.getElementById("auth-email");
@@ -18,20 +18,20 @@
   var btnLoginEl = document.getElementById("btn-login");
   var btnSignupEl = document.getElementById("btn-signup");
 
-    document.getElementById("btn-logout")
-    .addEventListener("click", async function(){
+  document.getElementById("btn-logout")
+    .addEventListener("click", async function () {
       var confirmar = confirm(
         "Deseja sair da sua conta?"
       );
 
-      if(!confirmar){
+      if (!confirmar) {
         return;
       }
 
       await desativarRealtime();
       var resultado = await supabaseClient.auth.signOut();
 
-      if(resultado.error){
+      if (resultado.error) {
         console.error(
           "Não foi possível sair:",
           resultado.error
@@ -49,33 +49,33 @@
       authScreenEl.classList.remove("hidden");
     });
 
-  function mostrarMensagemAuth(mensagem, sucesso){
+  function mostrarMensagemAuth(mensagem, sucesso) {
     authMessageEl.textContent = mensagem;
     authMessageEl.classList.toggle("success", !!sucesso);
   }
 
-  function bloquearBotoesAuth(bloquear){
+  function bloquearBotoesAuth(bloquear) {
     btnLoginEl.disabled = bloquear;
     btnSignupEl.disabled = bloquear;
   }
 
-  function validarFormularioAuth(){
+  function validarFormularioAuth() {
     var email = authEmailEl.value.trim();
     var senha = authPasswordEl.value;
 
-    if(!email){
+    if (!email) {
       mostrarMensagemAuth("Digite seu e-mail.");
       authEmailEl.focus();
       return null;
     }
 
-    if(!senha){
+    if (!senha) {
       mostrarMensagemAuth("Digite sua senha.");
       authPasswordEl.focus();
       return null;
     }
 
-    if(senha.length < 6){
+    if (senha.length < 6) {
       mostrarMensagemAuth("A senha precisa ter pelo menos 6 caracteres.");
       authPasswordEl.focus();
       return null;
@@ -87,9 +87,9 @@
     };
   }
 
-  async function criarConta(){
+  async function criarConta() {
     var dados = validarFormularioAuth();
-    if(!dados) return;
+    if (!dados) return;
 
     bloquearBotoesAuth(true);
     mostrarMensagemAuth("Criando sua conta...", true);
@@ -101,12 +101,12 @@
 
     bloquearBotoesAuth(false);
 
-    if(resultado.error){
+    if (resultado.error) {
       mostrarMensagemAuth(resultado.error.message);
       return;
     }
 
-    if(resultado.data.session){
+    if (resultado.data.session) {
       mostrarMensagemAuth("");
       authScreenEl.classList.add("hidden");
     } else {
@@ -117,9 +117,9 @@
     }
   }
 
-  async function entrar(){
+  async function entrar() {
     var dados = validarFormularioAuth();
-    if(!dados) return;
+    if (!dados) return;
 
     bloquearBotoesAuth(true);
     mostrarMensagemAuth("Entrando...", true);
@@ -131,7 +131,7 @@
 
     bloquearBotoesAuth(false);
 
-    if(resultado.error){
+    if (resultado.error) {
       mostrarMensagemAuth("E-mail ou senha incorretos.");
       return;
     }
@@ -142,10 +142,10 @@
     await ativarRealtime();
   }
 
-    async function solicitarRedefinicaoSenha(){
+  async function solicitarRedefinicaoSenha() {
     var email = authEmailEl.value.trim();
 
-    if(!email){
+    if (!email) {
       mostrarMensagemAuth(
         "Digite seu e-mail primeiro."
       );
@@ -172,7 +172,7 @@
     btnReset.disabled = false;
     btnReset.textContent = "Esqueci minha senha";
 
-    if(resultado.error){
+    if (resultado.error) {
       console.error(
         "Erro ao solicitar nova senha:",
         resultado.error
@@ -191,11 +191,11 @@
     );
   }
 
-    async function verificarLogin(){
+  async function verificarLogin() {
     var resultado = await supabaseClient.auth.getSession();
     var session = resultado.data.session;
 
-    if(session){
+    if (session) {
       authScreenEl.classList.add("hidden");
       await carregar();
       await ativarRealtime();
@@ -210,29 +210,29 @@
   btnSignupEl.addEventListener("click", criarConta);
 
   document.getElementById("btn-reset-password")
-  .addEventListener(
-    "click",
-    solicitarRedefinicaoSenha
-  );
+    .addEventListener(
+      "click",
+      solicitarRedefinicaoSenha
+    );
 
-  authPasswordEl.addEventListener("keydown", function(evento){
-    if(evento.key === "Enter"){
+  authPasswordEl.addEventListener("keydown", function (evento) {
+    if (evento.key === "Enter") {
       entrar();
     }
   });
 
-    supabaseClient.auth.onAuthStateChange(function(evento, session){
-    if(evento === "PASSWORD_RECOVERY"){
-      setTimeout(async function(){
+  supabaseClient.auth.onAuthStateChange(function (evento, session) {
+    if (evento === "PASSWORD_RECOVERY") {
+      setTimeout(async function () {
         var novaSenha = prompt(
           "Digite sua nova senha com pelo menos 6 caracteres:"
         );
 
-        if(!novaSenha){
+        if (!novaSenha) {
           return;
         }
 
-        if(novaSenha.length < 6){
+        if (novaSenha.length < 6) {
           alert(
             "A senha precisa ter pelo menos 6 caracteres."
           );
@@ -243,7 +243,7 @@
           password: novaSenha
         });
 
-        if(resultado.error){
+        if (resultado.error) {
           console.error(
             "Erro ao alterar a senha:",
             resultado.error
@@ -264,39 +264,40 @@
       return;
     }
 
-    if(session){
+    if (session) {
       authScreenEl.classList.add("hidden");
     } else {
       authScreenEl.classList.remove("hidden");
     }
   });
 
-  
+
   var items = [];
   var pendingRemoval = null; // { item, index, timeoutId }
   var realtimeChannel = null;
   var realtimeTimer = null;
 
   var MERCADOS = {
-    walmart:  { nome: "Walmart",    sigla: "WM", cor: "#0071ce" },
-    winco:    { nome: "Winco",      sigla: "WC", cor: "#b3400c" },
-    costco:   { nome: "Costco",     sigla: "CO", cor: "#d0021b" },
+    walmart: { nome: "Walmart", sigla: "WM", cor: "#0071ce" },
+    winco: { nome: "Winco", sigla: "WC", cor: "#b3400c" },
+    costco: { nome: "Costco", sigla: "CO", cor: "#d0021b" },
     samsclub: { nome: "Sam's Club", sigla: "SC", cor: "#001f4d" }
   };
   var ORDEM_MERCADOS = ["walmart", "winco", "costco", "samsclub"];
   var mercadoSelecionado = "walmart";
+  var mercadoAtivo = "todos";
 
   // ---------- Persistência ----------
 
-  
 
-    async function carregar(){
+
+  async function carregar() {
     var resultado = await supabaseClient
       .from("itens")
       .select("*")
       .order("created_at", { ascending: true });
 
-    if(resultado.error){
+    if (resultado.error) {
       console.error(
         "Não foi possível carregar os itens:",
         resultado.error
@@ -307,7 +308,7 @@
       return;
     }
 
-    items = resultado.data.map(function(item){
+    items = resultado.data.map(function (item) {
       return {
         id: item.id,
         nome: item.nome,
@@ -321,17 +322,17 @@
     render();
   }
 
-    async function ativarRealtime(){
+  async function ativarRealtime() {
     var resultadoUsuario =
       await supabaseClient.auth.getUser();
 
     var usuario = resultadoUsuario.data.user;
 
-    if(!usuario){
+    if (!usuario) {
       return;
     }
 
-    if(realtimeChannel){
+    if (realtimeChannel) {
       await supabaseClient.removeChannel(
         realtimeChannel
       );
@@ -348,24 +349,24 @@
           schema: "public",
           table: "itens"
         },
-        function(){
+        function () {
           clearTimeout(realtimeTimer);
 
-          realtimeTimer = setTimeout(function(){
+          realtimeTimer = setTimeout(function () {
             carregar();
           }, 300);
         }
       )
-      .subscribe(function(status){
+      .subscribe(function (status) {
         console.log("Realtime:", status);
       });
   }
 
-  async function desativarRealtime(){
+  async function desativarRealtime() {
     clearTimeout(realtimeTimer);
     realtimeTimer = null;
 
-    if(realtimeChannel){
+    if (realtimeChannel) {
       await supabaseClient.removeChannel(
         realtimeChannel
       );
@@ -375,27 +376,27 @@
   }
 
   // ---------- Parsing / formatação ----------
-  function parsePreco(str){
-    if(str == null) return null;
+  function parsePreco(str) {
+    if (str == null) return null;
     var s = String(str).trim();
-    if(s === "") return null;
-    if(s.indexOf(",") !== -1 && s.indexOf(".") !== -1){
+    if (s === "") return null;
+    if (s.indexOf(",") !== -1 && s.indexOf(".") !== -1) {
       s = s.replace(/,/g, "");
-    } else if(s.indexOf(",") !== -1){
+    } else if (s.indexOf(",") !== -1) {
       s = s.replace(",", ".");
     }
     var val = parseFloat(s);
-    if(!isFinite(val) || val < 0) return null;
+    if (!isFinite(val) || val < 0) return null;
     return Math.round(val * 100) / 100;
   }
 
-  function parseQtd(str){
+  function parseQtd(str) {
     var n = parseInt(String(str).replace(/[^\d]/g, ""), 10);
-    if(!Number.isFinite(n) || n < 1) return 1;
+    if (!Number.isFinite(n) || n < 1) return 1;
     return Math.min(n, 999);
   }
 
-  function formatCents(cents){
+  function formatCents(cents) {
     var sign = cents < 0 ? "-" : "";
     var abs = Math.abs(Math.round(cents));
     var intPart = Math.floor(abs / 100);
@@ -404,15 +405,29 @@
     return sign + "$" + intStr + "." + decPart;
   }
 
-  function itemSubtotalCents(item){
+  function itemSubtotalCents(item) {
     var precoCents = item.preco != null ? Math.round(item.preco * 100) : 0;
     return precoCents * item.qtd;
   }
 
-  function totalCents(){
-    return items.reduce(function(sum, it){
-      return it.pego ? sum + itemSubtotalCents(it) : sum;
+  function totalCents(lista) {
+    var origem = lista || items;
+
+    return origem.reduce(function (sum, item) {
+      return item.pego
+        ? sum + itemSubtotalCents(item)
+        : sum;
     }, 0);
+  }
+
+  function itensVisiveis() {
+    if (mercadoAtivo === "todos") {
+      return items.slice();
+    }
+
+    return items.filter(function (item) {
+      return item.mercado === mercadoAtivo;
+    });
   }
 
   // ---------- Render ----------
@@ -421,34 +436,80 @@
   var totalValueEl = document.getElementById("total-value");
   var progressTextEl = document.getElementById("progress-text");
   var progressFillEl = document.getElementById("progress-fill");
+  var marketTabsEl = document.getElementById("market-tabs");
+  var btnUncheckAllEl = document.getElementById("btn-uncheck-all");
 
-  function render(){
-    // total
-    totalValueEl.textContent = formatCents(totalCents());
+  function renderAbasMercado() {
+    var abas = ["todos"].concat(ORDEM_MERCADOS);
 
-    // progresso
-    var total = items.length;
-    var pegos = items.filter(function(i){ return i.pego; }).length;
-    if(total === 0){
-      progressTextEl.textContent = "0 itens na lista";
-      progressFillEl.style.width = "0%";
-    } else {
-      progressTextEl.textContent = total + (total === 1 ? " item na lista" : " itens na lista") +
-        " · " + pegos + (pegos === 1 ? " no carrinho" : " no carrinho");
-      progressFillEl.style.width = Math.round((pegos/total)*100) + "%";
-    }
+    marketTabsEl.innerHTML = abas.map(function (key) {
+      var ativo = key === mercadoAtivo;
+
+      var nome = key === "todos"
+        ? "Todos"
+        : MERCADOS[key].nome;
+
+      var cor = key === "todos"
+        ? "#3dff7e"
+        : MERCADOS[key].cor;
+
+      var quantidade = key === "todos"
+        ? items.length
+        : items.filter(function (item) {
+          return item.mercado === key;
+        }).length;
+
+      return (
+        '<button type="button" ' +
+        'class="market-tab' +
+        (ativo ? " selected" : "") + '" ' +
+        'data-market-tab="' + key + '" ' +
+        'style="--tab-cor:' + cor + '">' +
+        '<span>' + nome + '</span>' +
+        '<span class="market-tab-count">' +
+        quantidade +
+        '</span>' +
+        '</button>'
+      );
+    }).join("");
+  }
+
+  function render() {
+    var visiveis = itensVisiveis();
+
+    renderAbasMercado();
+
+    // total da aba atual
+    totalValueEl.textContent = formatCents(
+      totalCents(visiveis)
+    );
+
+    // progresso da aba atual
+    var total = visiveis.length;
+    var pegos = visiveis.filter(function (item) {
+      return item.pego;
+    }).length;
+
+    btnUncheckAllEl.disabled = pegos === 0;
 
     // lista
-    if(items.length === 0){
+    if (visiveis.length === 0) {
       emptyStateEl.style.display = "flex";
+
+      emptyStateEl.querySelector("p").textContent =
+        items.length === 0
+          ? "Sua lista está vazia. Adicione o primeiro item ali embaixo."
+          : "Nenhum item adicionado neste mercado.";
+
       listEl.innerHTML = "";
       return;
     }
+
     emptyStateEl.style.display = "none";
 
-    listEl.innerHTML = items.map(function(item){
+    listEl.innerHTML = visiveis.map(function (item) {
       var precoTxt = item.preco != null
-        ? formatCents(Math.round(item.preco*100))
+        ? formatCents(Math.round(item.preco * 100))
         : "<span class=\"sem-preco\">sem preço</span>";
       var subtotalTxt = formatCents(itemSubtotalCents(item));
       var detailTxt = item.qtd > 1
@@ -458,33 +519,33 @@
       var badgeHtml = '<div class="mercado-badge" style="background:' + m.cor + '" title="' + m.nome + '">' + m.sigla + '</div>';
       return (
         '<div class="item ' + (item.pego ? "pego" : "") + '" data-id="' + item.id + '">' +
-          '<button class="check" data-action="toggle" aria-label="Marcar como pego">✓</button>' +
-          badgeHtml +
-          '<div class="item-main" data-action="toggle">' +
-            '<div class="item-name">' + escapeHtml(item.nome) + '</div>' +
-            '<div class="item-detail">' + detailTxt + '</div>' +
-          '</div>' +
-          '<div class="item-subtotal mono">' + subtotalTxt + '</div>' +
-          '<div class="item-actions">' +
-            '<button class="edit-btn" data-action="edit" aria-label="Editar item">✎</button>' +
-            '<button class="del-btn" data-action="remove" aria-label="Remover item">✕</button>' +
-          '</div>' +
+        '<button class="check" data-action="toggle" aria-label="Marcar como pego">✓</button>' +
+        badgeHtml +
+        '<div class="item-main" data-action="toggle">' +
+        '<div class="item-name">' + escapeHtml(item.nome) + '</div>' +
+        '<div class="item-detail">' + detailTxt + '</div>' +
+        '</div>' +
+        '<div class="item-subtotal mono">' + subtotalTxt + '</div>' +
+        '<div class="item-actions">' +
+        '<button class="edit-btn" data-action="edit" aria-label="Editar item">✎</button>' +
+        '<button class="del-btn" data-action="remove" aria-label="Remover item">✕</button>' +
+        '</div>' +
         '</div>'
       );
     }).join("");
   }
 
-  function escapeHtml(str){
+  function escapeHtml(str) {
     var div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
   }
 
   // ---------- Ações ----------
-    async function adicionarItem(nome, qtdStr, precoStr){
+  async function adicionarItem(nome, qtdStr, precoStr) {
     nome = nome.trim();
 
-    if(!nome){
+    if (!nome) {
       return false;
     }
 
@@ -502,7 +563,7 @@
       .select()
       .single();
 
-    if(resultado.error){
+    if (resultado.error) {
       console.error(
         "Não foi possível adicionar o item:",
         resultado.error
@@ -529,44 +590,86 @@
     return true;
   }
 
-    async function toggleItem(id){
-    var item = items.find(function(i){
-      return i.id === id;
-    });
+  async function toggleItem(id) {
+  var item = items.find(function(i) {
+    return i.id === id;
+  });
 
-    if(!item){
-      return;
-    }
-
-    var novoEstado = !item.pego;
-
-    var resultado = await supabaseClient
-      .from("itens")
-      .update({
-        pego: novoEstado
-      })
-      .eq("id", id);
-
-    if(resultado.error){
-      console.error(
-        "Não foi possível atualizar o item:",
-        resultado.error
-      );
-
-      alert("Não foi possível atualizar o produto.");
-      return;
-    }
-
-    item.pego = novoEstado;
-    render();
+  if (!item) {
+    return;
   }
 
-    async function removerItem(id){
-    var index = items.findIndex(function(i){
+  var novoEstado = !item.pego;
+
+  var resultado = await supabaseClient
+    .from("itens")
+    .update({
+      pego: novoEstado
+    })
+    .eq("id", id);
+
+  if (resultado.error) {
+    console.error(
+      "Não foi possível atualizar o item:",
+      resultado.error
+    );
+
+    alert("Não foi possível atualizar o produto.");
+    return;
+  }
+
+  item.pego = novoEstado;
+  render();
+}
+
+async function desmarcarTodos() {
+  var itensMarcados = itensVisiveis().filter(
+    function(item) {
+      return item.pego;
+    }
+  );
+
+  if (itensMarcados.length === 0) {
+    return;
+  }
+
+  btnUncheckAllEl.disabled = true;
+
+  var ids = itensMarcados.map(function(item) {
+    return item.id;
+  });
+
+  var resultado = await supabaseClient
+    .from("itens")
+    .update({
+      pego: false
+    })
+    .in("id", ids);
+
+  if (resultado.error) {
+    console.error(
+      "Não foi possível desmarcar os itens:",
+      resultado.error
+    );
+
+    alert("Não foi possível desmarcar os itens.");
+    render();
+    return;
+  }
+
+  itensMarcados.forEach(function(item) {
+    item.pego = false;
+  });
+
+  render();
+}
+
+  async function removerItem(id) {
+    var index = items.findIndex(function (i) {
       return i.id === id;
     });
 
-    if(index === -1){
+    if (index === -1) {
       return;
     }
 
@@ -577,7 +680,7 @@
       .delete()
       .eq("id", id);
 
-    if(resultado.error){
+    if (resultado.error) {
       console.error(
         "Não foi possível remover o item:",
         resultado.error
@@ -587,7 +690,7 @@
       return;
     }
 
-    if(pendingRemoval){
+    if (pendingRemoval) {
       clearTimeout(pendingRemoval.timeoutId);
       pendingRemoval = null;
     }
@@ -598,7 +701,7 @@
     pendingRemoval = {
       item: removedItem,
       index: index,
-      timeoutId: setTimeout(function(){
+      timeoutId: setTimeout(function () {
         pendingRemoval = null;
         esconderToast();
       }, 5000)
@@ -607,10 +710,10 @@
     mostrarToast(removedItem.nome);
   }
 
-    
 
-    async function desfazerRemocao(){
-    if(!pendingRemoval){
+
+  async function desfazerRemocao() {
+    if (!pendingRemoval) {
       return;
     }
 
@@ -631,7 +734,7 @@
       .select()
       .single();
 
-    if(resultado.error){
+    if (resultado.error) {
       console.error(
         "Não foi possível desfazer a remoção:",
         resultado.error
@@ -660,13 +763,13 @@
     esconderToast();
   }
 
-    async function limparTudo(){
+  async function limparTudo() {
     var resultado = await supabaseClient
       .from("itens")
       .delete()
       .gte("id", 0);
 
-    if(resultado.error){
+    if (resultado.error) {
       console.error(
         "Não foi possível limpar a lista:",
         resultado.error
@@ -678,7 +781,7 @@
 
     items = [];
 
-    if(pendingRemoval){
+    if (pendingRemoval) {
       clearTimeout(pendingRemoval.timeoutId);
       pendingRemoval = null;
       esconderToast();
@@ -692,34 +795,60 @@
   var toastEl = document.getElementById("toast");
   var toastTextEl = document.getElementById("toast-text");
 
-  function mostrarToast(nome){
+  function mostrarToast(nome) {
     toastTextEl.textContent = 'Removeu "' + nome + '"';
     toastEl.classList.add("show");
   }
-  function esconderToast(){
+  function esconderToast() {
     toastEl.classList.remove("show");
   }
 
   // ---------- Eventos ----------
-  document.getElementById("list").addEventListener("click", function(e){
+  document.getElementById("list").addEventListener("click", function (e) {
     var actionEl = e.target.closest("[data-action]");
-    if(!actionEl) return;
+    if (!actionEl) return;
     var itemEl = e.target.closest(".item");
-    if(!itemEl) return;
+    if (!itemEl) return;
     var id = Number(itemEl.getAttribute("data-id"));
     var action = actionEl.getAttribute("data-action");
-    if(action === "toggle") toggleItem(id);
-    if(action === "remove") removerItem(id);
-    if(action === "edit") abrirEdicao(id);
+    if (action === "toggle") toggleItem(id);
+    if (action === "remove") removerItem(id);
+    if (action === "edit") abrirEdicao(id);
   });
 
   document.getElementById("btn-undo").addEventListener("click", desfazerRemocao);
+
+  btnUncheckAllEl.addEventListener(
+  "click",
+  desmarcarTodos
+);
+
+
+
+  marketTabsEl.addEventListener("click", function (evento) {
+    var aba = evento.target.closest("[data-market-tab]");
+
+    if (!aba) {
+      return;
+    }
+
+    mercadoAtivo = aba.getAttribute("data-market-tab");
+
+    if (mercadoAtivo !== "todos") {
+      mercadoSelecionado = mercadoAtivo;
+      renderMercadoChips();
+    }
+
+    render();
+
+    document.getElementById("list-wrap").scrollTop = 0;
+  });
 
   var inputNome = document.getElementById("input-nome");
   var inputQtd = document.getElementById("input-qtd");
   var inputPreco = document.getElementById("input-preco");
 
-    async function tentarAdicionar(){
+  async function tentarAdicionar() {
     var btnAdd = document.getElementById("btn-add");
 
     btnAdd.disabled = true;
@@ -734,7 +863,7 @@
     btnAdd.disabled = false;
     btnAdd.innerHTML = '<span class="plus">+</span> Adicionar';
 
-    if(ok){
+    if (ok) {
       inputNome.value = "";
       inputQtd.value = "";
       inputPreco.value = "";
@@ -744,26 +873,26 @@
   }
 
   document.getElementById("btn-add").addEventListener("click", tentarAdicionar);
-  inputNome.addEventListener("keydown", function(e){ if(e.key === "Enter") tentarAdicionar(); });
-  inputPreco.addEventListener("keydown", function(e){ if(e.key === "Enter") tentarAdicionar(); });
-  inputQtd.addEventListener("keydown", function(e){ if(e.key === "Enter") tentarAdicionar(); });
+  inputNome.addEventListener("keydown", function (e) { if (e.key === "Enter") tentarAdicionar(); });
+  inputPreco.addEventListener("keydown", function (e) { if (e.key === "Enter") tentarAdicionar(); });
+  inputQtd.addEventListener("keydown", function (e) { if (e.key === "Enter") tentarAdicionar(); });
 
   // limitar entrada do preço a dígitos, vírgula e ponto
-  inputPreco.addEventListener("input", function(){
+  inputPreco.addEventListener("input", function () {
     inputPreco.value = inputPreco.value.replace(/[^0-9.,]/g, "");
   });
-  inputQtd.addEventListener("input", function(){
+  inputQtd.addEventListener("input", function () {
     inputQtd.value = inputQtd.value.replace(/[^0-9]/g, "");
   });
 
   // ---------- Modal limpar tudo ----------
   var modalOverlay = document.getElementById("modal-overlay");
-  document.getElementById("btn-clear").addEventListener("click", function(){
-    if(items.length === 0) return;
+  document.getElementById("btn-clear").addEventListener("click", function () {
+    if (items.length === 0) return;
     modalOverlay.classList.add("show");
   });
-    document.getElementById("btn-modal-confirmar")
-    .addEventListener("click", async function(){
+  document.getElementById("btn-modal-confirmar")
+    .addEventListener("click", async function () {
       var btnConfirmar = document.getElementById(
         "btn-modal-confirmar"
       );
@@ -776,20 +905,20 @@
       btnConfirmar.disabled = false;
       btnConfirmar.textContent = "Limpar tudo";
 
-      if(limpou){
+      if (limpou) {
         modalOverlay.classList.remove("show");
       }
     });
-  document.getElementById("btn-modal-confirmar").addEventListener("click", function(){
+  document.getElementById("btn-modal-confirmar").addEventListener("click", function () {
     limparTudo();
     modalOverlay.classList.remove("show");
   });
-  modalOverlay.addEventListener("click", function(e){
-    if(e.target === modalOverlay) modalOverlay.classList.remove("show");
+  modalOverlay.addEventListener("click", function (e) {
+    if (e.target === modalOverlay) modalOverlay.classList.remove("show");
   });
 
   // ajustar posição do toast conforme altura da barra inferior
-  function ajustarAlturaAddbar(){
+  function ajustarAlturaAddbar() {
     var h = document.getElementById("addbar").offsetHeight;
     document.documentElement.style.setProperty("--addbar-h", h + "px");
   }
@@ -800,33 +929,33 @@
   var editMercadoRowEl = document.getElementById("edit-mercado-row");
   var mercadoEdicaoSelecionado = "walmart";
 
-  function renderChipsMercado(containerEl, selecionado){
-    containerEl.innerHTML = ORDEM_MERCADOS.map(function(key){
+  function renderChipsMercado(containerEl, selecionado) {
+    containerEl.innerHTML = ORDEM_MERCADOS.map(function (key) {
       var m = MERCADOS[key];
       var selected = key === selecionado;
       return (
         '<button type="button" class="mercado-chip' + (selected ? " selected" : "") + '" ' +
-          'data-mercado="' + key + '" style="--chip-cor:' + m.cor + '">' +
-          '<span class="sigla" style="background:' + m.cor + '">' + m.sigla + '</span>' +
-          '<span>' + m.nome + '</span>' +
+        'data-mercado="' + key + '" style="--chip-cor:' + m.cor + '">' +
+        '<span class="sigla" style="background:' + m.cor + '">' + m.sigla + '</span>' +
+        '<span>' + m.nome + '</span>' +
         '</button>'
       );
     }).join("");
   }
 
-  function renderMercadoChips(){ renderChipsMercado(mercadoRowEl, mercadoSelecionado); }
-  function renderMercadoChipsEdicao(){ renderChipsMercado(editMercadoRowEl, mercadoEdicaoSelecionado); }
+  function renderMercadoChips() { renderChipsMercado(mercadoRowEl, mercadoSelecionado); }
+  function renderMercadoChipsEdicao() { renderChipsMercado(editMercadoRowEl, mercadoEdicaoSelecionado); }
 
-  mercadoRowEl.addEventListener("click", function(e){
+  mercadoRowEl.addEventListener("click", function (e) {
     var btn = e.target.closest(".mercado-chip");
-    if(!btn) return;
+    if (!btn) return;
     mercadoSelecionado = btn.getAttribute("data-mercado");
     renderMercadoChips();
   });
 
-  editMercadoRowEl.addEventListener("click", function(e){
+  editMercadoRowEl.addEventListener("click", function (e) {
     var btn = e.target.closest(".mercado-chip");
-    if(!btn) return;
+    if (!btn) return;
     mercadoEdicaoSelecionado = btn.getAttribute("data-mercado");
     renderMercadoChipsEdicao();
   });
@@ -838,9 +967,9 @@
   var editInputPreco = document.getElementById("edit-input-preco");
   var editingId = null;
 
-  function abrirEdicao(id){
-    var item = items.find(function(i){ return i.id === id; });
-    if(!item) return;
+  function abrirEdicao(id) {
+    var item = items.find(function (i) { return i.id === id; });
+    if (!item) return;
     editingId = id;
     editInputNome.value = item.nome;
     editInputQtd.value = String(item.qtd);
@@ -850,27 +979,27 @@
     editModalOverlay.classList.add("show");
   }
 
-  function fecharEdicao(){
+  function fecharEdicao() {
     editModalOverlay.classList.remove("show");
     editingId = null;
   }
 
-    async function salvarEdicao(){
-    if(editingId == null){
+  async function salvarEdicao() {
+    if (editingId == null) {
       return;
     }
 
-    var item = items.find(function(i){
+    var item = items.find(function (i) {
       return i.id === editingId;
     });
 
-    if(!item){
+    if (!item) {
       return;
     }
 
     var nome = editInputNome.value.trim();
 
-    if(!nome){
+    if (!nome) {
       editInputNome.focus();
       return;
     }
@@ -895,7 +1024,7 @@
     btnSalvar.disabled = false;
     btnSalvar.textContent = "Salvar";
 
-    if(resultado.error){
+    if (resultado.error) {
       console.error(
         "Não foi possível editar o item:",
         resultado.error
@@ -916,16 +1045,16 @@
 
   document.getElementById("btn-edit-cancelar").addEventListener("click", fecharEdicao);
   document.getElementById("btn-edit-salvar").addEventListener("click", salvarEdicao);
-  editModalOverlay.addEventListener("click", function(e){
-    if(e.target === editModalOverlay) fecharEdicao();
+  editModalOverlay.addEventListener("click", function (e) {
+    if (e.target === editModalOverlay) fecharEdicao();
   });
-  editInputNome.addEventListener("keydown", function(e){ if(e.key === "Enter") salvarEdicao(); });
-  editInputQtd.addEventListener("keydown", function(e){ if(e.key === "Enter") salvarEdicao(); });
-  editInputPreco.addEventListener("keydown", function(e){ if(e.key === "Enter") salvarEdicao(); });
-  editInputPreco.addEventListener("input", function(){
+  editInputNome.addEventListener("keydown", function (e) { if (e.key === "Enter") salvarEdicao(); });
+  editInputQtd.addEventListener("keydown", function (e) { if (e.key === "Enter") salvarEdicao(); });
+  editInputPreco.addEventListener("keydown", function (e) { if (e.key === "Enter") salvarEdicao(); });
+  editInputPreco.addEventListener("input", function () {
     editInputPreco.value = editInputPreco.value.replace(/[^0-9.,]/g, "");
   });
-  editInputQtd.addEventListener("input", function(){
+  editInputQtd.addEventListener("input", function () {
     editInputQtd.value = editInputQtd.value.replace(/[^0-9]/g, "");
   });
 
@@ -937,7 +1066,7 @@
 
   // expõe para testes internos
   window.__test__ = {
-    items: function(){ return items; },
+    items: function () { return items; },
     totalCents: totalCents,
     formatCents: formatCents,
     parsePreco: parsePreco,

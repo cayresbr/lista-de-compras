@@ -146,6 +146,70 @@ body {
   transition: width 0.25s ease;
 }
 
+/* ---------- ABAS DOS MERCADOS ---------- */
+
+.market-tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 12px 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.market-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.market-tab {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.market-tab.selected {
+  border-color: var(--tab-cor, var(--accent));
+  background: color-mix(
+    in srgb,
+    var(--tab-cor, var(--accent)) 16%,
+    var(--surface)
+  );
+  color: var(--text);
+}
+
+.market-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+}
+
+.market-tab.selected .market-tab-count {
+  color: var(--text);
+}
+
 /* ---------- LISTA ---------- */
 .list-wrap {
   flex: 1;
@@ -744,7 +808,8 @@ input:focus {
   margin-bottom: 0;
 }
 
-.logout-btn {
+.logout-btn,
+.uncheck-btn {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -765,6 +830,17 @@ input:focus {
   transform: scale(0.94);
 }
 
+.uncheck-btn:active {
+  color: var(--accent);
+  background: var(--accent-dim);
+  transform: scale(0.94);
+}
+
+.uncheck-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .auth-reset {
   display: block;
   width: 100%;
@@ -779,4 +855,21 @@ input:focus {
 
 .auth-reset:hover {
   color: var(--accent);
+}
+
+@media (max-width: 430px) {
+  .total-value {
+    font-size: 36px;
+  }
+
+  .top-actions {
+    gap: 5px;
+  }
+
+  .logout-btn,
+  .uncheck-btn,
+  .clear-btn {
+    width: 39px;
+    height: 39px;
+  }
 }
